@@ -1,0 +1,11 @@
+resource_group_name = "dev-rg"
+location            = "East US"
+
+public_ip_names = [
+  "dev-ip-01",
+  "dev-ip-02"
+]
+
+tags = {
+  environment = "dev"
+}
