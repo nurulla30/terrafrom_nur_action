@@ -22,12 +22,14 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
 
-    # Environment secrets setup
+    # Dynamically set environment-specific secrets
     env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      AZURE_CLIENT_ID: ${{ secrets["AZURE_CLIENT_ID_" + github.event.inputs.environment | upper] }}
+      AZURE_CLIENT_SECRET: ${{ secrets["AZURE_CLIENT_SECRET_" + github.event.inputs.environment | upper] }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets["AZURE_SUBSCRIPTION_ID_" + github.event.inputs.environment | upper] }}
+      AZURE_TENANT_ID: ${{ secrets["AZURE_TENANT_ID_" + github.event.inputs.environment | upper] }}
+      AZURE_STORAGE_ACCOUNT: ${{ secrets["AZURE_STORAGE_ACCOUNT_" + github.event.inputs.environment | upper] }}
+      AZURE_STORAGE_KEY: ${{ secrets["AZURE_STORAGE_KEY_" + github.event.inputs.environment | upper] }}
 
     steps:
     - name: Checkout repository
@@ -41,16 +43,17 @@ jobs:
     - name: Azure Login for ${{ github.event.inputs.environment | upper }}
       uses: azure/login@v1
       with:
-        client-id: ${{ secrets.ARM_CLIENT_ID }}
-        tenant-id: ${{ secrets.ARM_TENANT_ID }}
-        subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
+        client-id: ${{ secrets["AZURE_CLIENT_ID_" + github.event.inputs.environment | upper] }}
+        tenant-id: ${{ secrets["AZURE_TENANT_ID_" + github.event.inputs.environment | upper] }}
+        subscription-id: ${{ secrets["AZURE_SUBSCRIPTION_ID_" + github.event.inputs.environment | upper] }}
+        client-secret: ${{ secrets["AZURE_CLIENT_SECRET_" + github.event.inputs.environment | upper] }}
 
     - name: Terraform Init for ${{ github.event.inputs.environment | upper }}
-      run: terraform init -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT }}" \
-                          -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
-                          -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP }}" \
-                          -backend-config="key=${{ github.event.inputs.environment }}.tfstate"
+      run: terraform init -backend-config="storage_account_name=${{ secrets['AZURE_STORAGE_ACCOUNT_' + github.event.inputs.environment | upper] }}" \
+                          -backend-config="container_name=public_ip" \
+                          -backend-config="resource_group_name=${{ github.event.inputs.environment }}-rg" \
+                          -backend-config="key=${{ github.event.inputs.environment }}.tfstate" \
+                          -backend-config="access_key=${{ secrets['AZURE_STORAGE_KEY_' + github.event.inputs.environment | upper] }}"
 
     - name: Terraform Plan for ${{ github.event.inputs.environment | upper }}
       run: terraform plan -var-file="tf/${{ github.event.inputs.environment }}.tfvars"
