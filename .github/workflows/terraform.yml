@@ -37,13 +37,11 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID_DEV }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_DEV }}
 
-
       - name: Terraform Init (Dev)
-        run: terraform init \
-          -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_DEV }}" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=dev.tfstate" \
-          -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_DEV }}"
+        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_DEV }}" \
+                            -backend-config="container_name=tfstate" \
+                            -backend-config="key=dev.tfstate" \
+                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_DEV }}"
 
       - name: Terraform Plan (Dev)
         run: terraform plan -var-file="tf/dev.tfvars"
@@ -66,14 +64,12 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID_DEV }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_DEV }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_DEV }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET_DEV }}
 
       - name: Terraform Init (Dev)
-        run: terraform init \
-          -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_DEV }}" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=dev.tfstate" \
-          -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_DEV }}"
+        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_DEV }}" \
+                            -backend-config="container_name=tfstate" \
+                            -backend-config="key=dev.tfstate" \
+                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_DEV }}"
 
       - name: Terraform Apply (Dev)
         run: terraform apply -auto-approve -var-file="tf/dev.tfvars"
@@ -97,14 +93,12 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID_QA }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_QA }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_QA }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET_QA }}
 
       - name: Terraform Init (QA)
-        run: terraform init \
-          -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_QA }}" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=qa.tfstate" \
-          -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_QA }}"
+        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_QA }}" \
+                            -backend-config="container_name=tfstate" \
+                            -backend-config="key=qa.tfstate" \
+                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_QA }}"
 
       - name: Terraform Plan (QA)
         run: terraform plan -var-file="tf/qa.tfvars"
@@ -127,14 +121,12 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID_QA }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_QA }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_QA }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET_QA }}
 
       - name: Terraform Init (QA)
-        run: terraform init \
-          -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_QA }}" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=qa.tfstate" \
-          -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_QA }}"
+        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_QA }}" \
+                            -backend-config="container_name=tfstate" \
+                            -backend-config="key=qa.tfstate" \
+                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_QA }}"
 
       - name: Terraform Apply (QA)
         run: terraform apply -auto-approve -var-file="tf/qa.tfvars"
@@ -158,14 +150,12 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID_PROD }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_PROD }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_PROD }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET_PROD }}
 
       - name: Terraform Init (Prod)
-        run: terraform init \
-          -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_PROD }}" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=prod.tfstate" \
-          -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_PROD }}"
+        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_PROD }}" \
+                            -backend-config="container_name=tfstate" \
+                            -backend-config="key=prod.tfstate" \
+                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_PROD }}"
 
       - name: Terraform Plan (Prod)
         run: terraform plan -var-file="tf/prod.tfvars"
@@ -188,14 +178,12 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID_PROD }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_PROD }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_PROD }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET_PROD }}
 
       - name: Terraform Init (Prod)
-        run: terraform init \
-          -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_PROD }}" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=prod.tfstate" \
-          -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_PROD }}"
+        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_PROD }}" \
+                            -backend-config="container_name=tfstate" \
+                            -backend-config="key=prod.tfstate" \
+                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_PROD }}"
 
       - name: Terraform Apply (Prod)
         run: terraform apply -auto-approve -var-file="tf/prod.tfvars"
