@@ -44,11 +44,13 @@ jobs:
         subscription-id: ${{ secrets["AZURE_SUBSCRIPTION_ID_" + github.event.inputs.environment | upper] }}
 
     - name: Terraform Init for ${{ github.event.inputs.environment | upper }}
-      run: terraform init -backend-config="storage_account_name=${{ secrets['AZURE_STORAGE_ACCOUNT_' + github.event.inputs.environment | upper] }}" \
-                          -backend-config="container_name=tfstate" \
-                          -backend-config="key=${{ github.event.inputs.environment }}.tfstate" \
-                          -backend-config="subscription_id=${{ secrets['AZURE_SUBSCRIPTION_ID_' + github.event.inputs.environment | upper] }}" \
-                          -backend-config="tenant_id=${{ secrets['AZURE_TENANT_ID_' + github.event.inputs.environment | upper] }}"
+      run: |
+        terraform init \
+          -backend-config="storage_account_name=${{ secrets['AZURE_STORAGE_ACCOUNT_' + github.event.inputs.environment | upper] }}" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=${{ github.event.inputs.environment }}.tfstate" \
+          -backend-config="subscription_id=${{ secrets['AZURE_SUBSCRIPTION_ID_' + github.event.inputs.environment | upper] }}" \
+          -backend-config="tenant_id=${{ secrets['AZURE_TENANT_ID_' + github.event.inputs.environment | upper] }}"
 
     - name: Terraform Plan for ${{ github.event.inputs.environment | upper }}
       run: terraform plan -out=tfplan -var-file="tf/${{ github.event.inputs.environment }}.tfvars"
