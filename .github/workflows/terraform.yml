@@ -1,13 +1,28 @@
 name: 'Terraform CI/CD Pipeline'
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select which environment(s) to run'
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - dev+qa
+          - dev+qa+prod
 
 jobs:
   # Stage for Dev Environment
   dev-plan:
     name: "Dev Plan"
     runs-on: ubuntu-latest
+    if: contains(github.event.inputs.environment, 'dev')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -37,6 +52,7 @@ jobs:
     name: "Dev Apply"
     needs: dev-plan
     runs-on: ubuntu-latest
+    if: contains(github.event.inputs.environment, 'dev')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -67,6 +83,7 @@ jobs:
     name: "QA Plan"
     needs: dev-apply
     runs-on: ubuntu-latest
+    if: contains(github.event.inputs.environment, 'qa')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -96,6 +113,7 @@ jobs:
     name: "QA Apply"
     needs: qa-plan
     runs-on: ubuntu-latest
+    if: contains(github.event.inputs.environment, 'qa')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -126,6 +144,7 @@ jobs:
     name: "Prod Plan"
     needs: qa-apply
     runs-on: ubuntu-latest
+    if: contains(github.event.inputs.environment, 'prod')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -155,6 +174,7 @@ jobs:
     name: "Prod Apply"
     needs: prod-plan
     runs-on: ubuntu-latest
+    if: contains(github.event.inputs.environment, 'prod')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
