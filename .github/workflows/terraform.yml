@@ -1,9 +1,5 @@
 name: 'Terraform CI/CD Pipeline'
 
-permissions:
-  id-token: write
-  contents: read
-
 on:
   workflow_dispatch:
     inputs:
@@ -14,158 +10,49 @@ on:
         type: choice
         options:
           - dev
-          - dev+qa
-          - dev+qa+prod
+          - qa
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  # Stage for Dev Environment
-  dev-plan:
-    name: "Dev Plan"
+  terraform:
+    name: 'Terraform'
     runs-on: ubuntu-latest
-    if: contains(github.event.inputs.environment, 'dev')
+
+    # Set environment secrets dynamically
+    env:
+      AZURE_CLIENT_ID: ${{ secrets["AZURE_CLIENT_ID_" + github.event.inputs.environment | upper] }}
+      AZURE_CLIENT_SECRET: ${{ secrets["AZURE_CLIENT_SECRET_" + github.event.inputs.environment | upper] }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets["AZURE_SUBSCRIPTION_ID_" + github.event.inputs.environment | upper] }}
+      AZURE_TENANT_ID: ${{ secrets["AZURE_TENANT_ID_" + github.event.inputs.environment | upper] }}
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
 
-      - name: Azure Login for Dev
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_DEV }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID_DEV }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_DEV }}
+    - name: Azure Login for ${{ github.event.inputs.environment | upper }}
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets["AZURE_CLIENT_ID_" + github.event.inputs.environment | upper] }}
+        tenant-id: ${{ secrets["AZURE_TENANT_ID_" + github.event.inputs.environment | upper] }}
+        subscription-id: ${{ secrets["AZURE_SUBSCRIPTION_ID_" + github.event.inputs.environment | upper] }}
 
-      - name: Terraform Init (Dev)
-        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_DEV }}" \
-                            -backend-config="container_name=tfstate" \
-                            -backend-config="key=dev.tfstate" \
-                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_DEV }}"
+    - name: Terraform Init for ${{ github.event.inputs.environment | upper }}
+      run: terraform init -backend-config="storage_account_name=${{ secrets['AZURE_STORAGE_ACCOUNT_' + github.event.inputs.environment | upper] }}" \
+                          -backend-config="container_name=tfstate" \
+                          -backend-config="key=${{ github.event.inputs.environment }}.tfstate" \
+                          -backend-config="subscription_id=${{ secrets['AZURE_SUBSCRIPTION_ID_' + github.event.inputs.environment | upper] }}" \
+                          -backend-config="tenant_id=${{ secrets['AZURE_TENANT_ID_' + github.event.inputs.environment | upper] }}"
 
-      - name: Terraform Plan (Dev)
-        run: terraform plan -out=dev.tfplan -var-file="tf/dev.tfvars"
+    - name: Terraform Plan for ${{ github.event.inputs.environment | upper }}
+      run: terraform plan -out=tfplan -var-file="tf/${{ github.event.inputs.environment }}.tfvars"
 
-  dev-apply:
-    name: "Dev Apply"
-    needs: dev-plan
-    runs-on: ubuntu-latest
-    if: contains(github.event.inputs.environment, 'dev')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Azure Login for Dev
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_DEV }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID_DEV }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_DEV }}
-
-      - name: Terraform Apply (Dev)
-        run: terraform apply "dev.tfplan" # Ensure plan file is last argument here
-
-  # Stage for QA Environment
-  qa-plan:
-    name: "QA Plan"
-    needs: dev-apply
-    runs-on: ubuntu-latest
-    if: contains(github.event.inputs.environment, 'qa')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Azure Login for QA
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_QA }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID_QA }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_QA }}
-
-      - name: Terraform Init (QA)
-        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_QA }}" \
-                            -backend-config="container_name=tfstate" \
-                            -backend-config="key=qa.tfstate" \
-                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_QA }}"
-
-      - name: Terraform Plan (QA)
-        run: terraform plan -out=qa.tfplan -var-file="tf/qa.tfvars"
-
-  qa-apply:
-    name: "QA Apply"
-    needs: qa-plan
-    runs-on: ubuntu-latest
-    if: contains(github.event.inputs.environment, 'qa')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Azure Login for QA
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_QA }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID_QA }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_QA }}
-
-      - name: Terraform Apply (QA)
-        run: terraform apply "qa.tfplan" # Ensure plan file is last argument here
-
-  # Stage for Prod Environment
-  prod-plan:
-    name: "Prod Plan"
-    needs: qa-apply
-    runs-on: ubuntu-latest
-    if: contains(github.event.inputs.environment, 'prod')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Azure Login for Prod
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_PROD }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID_PROD }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_PROD }}
-
-      - name: Terraform Init (Prod)
-        run: terraform init -backend-config="storage_account_name=${{ secrets.AZURE_STORAGE_ACCOUNT_PROD }}" \
-                            -backend-config="container_name=tfstate" \
-                            -backend-config="key=prod.tfstate" \
-                            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY_PROD }}"
-
-      - name: Terraform Plan (Prod)
-        run: terraform plan -out=prod.tfplan -var-file="tf/prod.tfvars"
-
-  prod-apply:
-    name: "Prod Apply"
-    needs: prod-plan
-    runs-on: ubuntu-latest
-    if: contains(github.event.inputs.environment, 'prod')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Azure Login for Prod
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_PROD }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID_PROD }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_PROD }}
-
-      - name: Terraform Apply (Prod)
-        run: terraform apply "prod.tfplan" # Ensure plan file is last argument here
+    - name: Terraform Apply for ${{ github.event.inputs.environment | upper }}
+      if: github.event_name == 'workflow_dispatch'
+      run: terraform apply -auto-approve tfplan

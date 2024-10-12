@@ -14,3 +14,4 @@ output "public_ips" {
   description = "List of public IP addresses"
   value       = module.public_ip.azurerm_public_ip.public_ip[*].ip_address
 }
+
