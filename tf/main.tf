@@ -15,7 +15,7 @@ terraform {
 }
 
 module "public_ip" {
-  source = "/../module/public_ip"
+  source = "/../module/publicip"
 
   public_ip_name         = var.public_ip_name
   location               = var.location
